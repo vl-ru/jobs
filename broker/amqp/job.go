@@ -1,7 +1,6 @@
 package amqp
 
 import (
-	"fmt"
 	"github.com/spiral/jobs"
 	"github.com/streadway/amqp"
 )
@@ -23,18 +22,17 @@ func pack(id string, attempt int, j *jobs.Job) amqp.Table {
 func unpack(d amqp.Delivery) (id string, attempt int, j *jobs.Job, err error) {
 	j = &jobs.Job{Payload: string(d.Body), Options: &jobs.Options{}}
 
-	if _, ok := d.Headers["rr-id"].(string); !ok {
-		return "", 0, nil, fmt.Errorf("missing header `%s`", "rr-id")
+	if _, ok := d.Headers["rr-id"].(string); ok {
+		id = d.Headers["rr-id"].(string)
 	}
 
-	if _, ok := d.Headers["rr-attempt"].(int64); !ok {
-		return "", 0, nil, fmt.Errorf("missing header `%s`", "rr-attempt")
+	if _, ok := d.Headers["rr-attempt"].(int64); ok {
+		attempt = int(d.Headers["rr-attempt"].(int64))
 	}
 
-	if _, ok := d.Headers["rr-job"].(string); !ok {
-		return "", 0, nil, fmt.Errorf("missing header `%s`", "rr-job")
+	if _, ok := d.Headers["rr-job"].(string); ok {
+		j.Job = d.Headers["rr-job"].(string)
 	}
-	j.Job = d.Headers["rr-job"].(string)
 
 	if _, ok := d.Headers["rr-maxAttempts"].(int64); ok {
 		j.Options.Attempts = int(d.Headers["rr-maxAttempts"].(int64))
@@ -52,5 +50,5 @@ func unpack(d amqp.Delivery) (id string, attempt int, j *jobs.Job, err error) {
 		j.Options.RetryDelay = int(d.Headers["rr-retryDelay"].(int64))
 	}
 
-	return d.Headers["rr-id"].(string), int(d.Headers["rr-attempt"].(int64)), j, nil
+	return
 }

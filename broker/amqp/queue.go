@@ -1,6 +1,7 @@
 package amqp
 
 import (
+	"errors"
 	"fmt"
 	"github.com/spiral/jobs"
 	"github.com/streadway/amqp"
@@ -125,6 +126,15 @@ func (q *queue) do(cp *chanPool, h jobs.Handler, d amqp.Delivery) error {
 		q.report(err)
 		return d.Nack(false, false)
 	}
+
+	if j.Job == "" {
+		if !q.pipe.Has("defaultJob") {
+			q.report(errors.New("default job not configured"))
+			return d.Nack(false, false)
+		}
+		j.Job = q.pipe.String("job", "")
+	}
+
 	err = h(id, j)
 
 	if err == nil {

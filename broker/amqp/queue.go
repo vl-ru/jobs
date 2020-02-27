@@ -125,7 +125,7 @@ func (q *queue) do(cp *chanPool, h jobs.Handler, d amqp.Delivery) error {
 	id, attempt, j := unpack(d)
 
 	if j.Job == "" {
-		j.Job = q.pipe.String("defaultJob", "")
+		j.Job = q.pipe.String("defaultjob", "")
 		if j.Job == "" {
 			q.report(errors.New("default job not configured"))
 			return d.Nack(false, false)

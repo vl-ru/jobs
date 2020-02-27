@@ -3,12 +3,13 @@ package amqp
 import (
 	"errors"
 	"fmt"
-	"github.com/spiral/jobs"
-	"github.com/streadway/amqp"
 	"os"
 	"sync"
 	"sync/atomic"
 	"time"
+
+	"github.com/spiral/jobs"
+	"github.com/streadway/amqp"
 )
 
 type queue struct {
@@ -121,21 +122,17 @@ func (q *queue) consume(consume *chanPool) (jobs <-chan amqp.Delivery, cc *chann
 }
 
 func (q *queue) do(cp *chanPool, h jobs.Handler, d amqp.Delivery) error {
-	id, attempt, j, err := unpack(d)
-	if err != nil {
-		q.report(err)
-		return d.Nack(false, false)
-	}
+	id, attempt, j := unpack(d)
 
 	if j.Job == "" {
-		if !q.pipe.Has("defaultJob") {
+		j.Job = q.pipe.String("defaultJob", "")
+		if j.Job == "" {
 			q.report(errors.New("default job not configured"))
 			return d.Nack(false, false)
 		}
-		j.Job = q.pipe.String("job", "")
 	}
 
-	err = h(id, j)
+	err := h(id, j)
 
 	if err == nil {
 		return d.Ack(false)

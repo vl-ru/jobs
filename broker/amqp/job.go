@@ -19,7 +19,7 @@ func pack(id string, attempt int, j *jobs.Job) amqp.Table {
 }
 
 // unpack restores jobs.Options
-func unpack(d amqp.Delivery) (id string, attempt int, j *jobs.Job, err error) {
+func unpack(d amqp.Delivery) (id string, attempt int, j *jobs.Job) {
 	j = &jobs.Job{Payload: string(d.Body), Options: &jobs.Options{}}
 
 	if _, ok := d.Headers["rr-id"].(string); ok {

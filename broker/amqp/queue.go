@@ -130,6 +130,7 @@ func (q *queue) do(cp *chanPool, h jobs.Handler, d amqp.Delivery) error {
 			q.report(errors.New("default job not configured"))
 			return d.Nack(false, false)
 		}
+		j.Options.Attempts = q.pipe.Integer("maxattempts", 0)
 	}
 
 	err := h(id, j)
